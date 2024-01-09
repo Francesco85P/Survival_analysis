@@ -1,0 +1,72 @@
+library(tidyverse)
+library(survival)
+
+SURVIVAL_TABLE <- read_csv("SURVIVAL_TABLE.csv")
+
+
+fit.surv <- survfit (data= SURVIVAL_TABLE, Surv ( TIME , CENSUS ) ~ 1)
+plot(fit.surv,
+     xlab = "Days" ,
+     ylab = "Estimated Probability of Survival" )
+
+
+
+fit.surv <- survfit (data= SURVIVAL_TABLE, Surv ( TIME , CENSUS ) ~ TREATMENT)
+plot(fit.surv,
+      xlab = "Days" ,
+           ylab = "Estimated Probability of Survival", col = c (2 ,4) )
+legend ("bottomleft" ,  c ("Control" ,"Treatment") , col =c(2,4), lty = 1)
+
+
+
+
+fit.surv <- survfit (data= SURVIVAL_TABLE, Surv ( TIME , CENSUS ) ~ CONTINENT + TREATMENT)
+plot(fit.surv,
+     xlab = "Days" ,
+     ylab = "Estimated Probability of Survival" , col= c(1,1,2,2,3,3,4,4), lty=c(1,2,1,2,1,2,1,2))
+legend ("bottomleft" ,  c ("AF C" ,"AF T", "AM C", "AM T", "AS C", "AS T", "EU C", "EU T" ) ,
+        col= c(1,1,2,2,3,3,4,4), lty=c(1,2,1,2,1,2,1,2), cex =0.5)
+
+
+
+
+
+
+     
+
+SURVIVAL_TABLE_CONTROL <-SURVIVAL_TABLE |> 
+  filter(TREATMENT == "C")
+
+fit.surv <- survfit (data= SURVIVAL_TABLE_CONTROL, Surv ( TIME , CENSUS ) ~ CONTINENT)
+plot(fit.surv,
+     xlab = "Days" ,
+     ylab = "Estimated Probability of Survival", col = c (1,2,3,4) )
+legend ("bottomleft" ,  c ("Africa", "America","Asia", "Europa") , col =c(1,2,3,4), lty = 1, cex =0.5)
+
+
+SURVIVAL_TABLE_CONTROL <-SURVIVAL_TABLE |> 
+  filter(TREATMENT == "T")
+
+fit.surv <- survfit (data= SURVIVAL_TABLE_CONTROL, Surv ( TIME , CENSUS ) ~ CONTINENT)
+plot(fit.surv,
+     xlab = "Days" ,
+     ylab = "Estimated Probability of Survival", col = c (1,2,3,4) )
+legend ("bottomleft" ,  c ("Africa", "America","Asia", "Europa") , col =c(1,2,3,4), lty = 1, cex =0.5)
+
+
+
+
+# Cox regression with mixed effects ---------------------------------------
+
+library(coxme)
+
+fit1 <-coxph(Surv(TIME, CENSUS) ~ TREATMENT*CONTINENT, data= SURVIVAL_TABLE)
+fit2 <-coxme(Surv(TIME, CENSUS) ~ TREATMENT*CONTINENT + (1|VIAL), data= SURVIVAL_TABLE)
+fit3 <-coxme(Surv(TIME, CENSUS) ~ TREATMENT + CONTINENT + (1|VIAL), data= SURVIVAL_TABLE)
+
+
+anova(fit1,fit2)  
+anova(fit2,fit3)
+
+fit3
+
